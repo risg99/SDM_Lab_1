@@ -10,7 +10,7 @@ def load_node_institution_semantic(session):
         """LOAD CSV WITH HEADERS FROM 'file:///authors_semantic.csv' AS line
             CREATE (a:Author {name:line.name}) 
             WITH a, line
-            MATCH (i:Institution {name: line.institution})
+            MERGE (i:Institution {name: line.institution})
             WITH a, i, line
             CREATE (a) - [r:is_from] -> (i)
             SET r.department = line.department;"""
@@ -47,6 +47,7 @@ session = create_session()
 print('Creating and loading the evolved nodes and relations into the database...')
 session.execute_write(load_node_institution_semantic)
 session.execute_write(load_relation_author_reviews_paper)
+session.execute_write(query_accept_paper_publication)
 print('Creation and loading for evolved nodes done for the database.')
 
 session.close()
