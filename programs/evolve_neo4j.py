@@ -32,7 +32,7 @@ def load_relation_author_reviews_paper(session):
 def query_accept_paper_publication(session):
     session.run(
         """MATCH (a:Author) - [r:reviews] -> (p:Paper)
-            WITH a, r, p.name AS paperTitle
+            WITH a, r, p.title AS paperTitle
             CASE 
                 WHEN SUM(r.acceptanceProbability) > 0.5 
                     THEN True
