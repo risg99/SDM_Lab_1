@@ -16,9 +16,7 @@ def load_node_author_semantic(session):
             CREATE (:Author {
                 ID: line.ID,
                 name: line.name,
-                email: line.email,
-                department: line.department,
-                institution: line.institution
+                email: line.email
         })"""
     )
 
@@ -80,7 +78,8 @@ def load_relation_author_writes_paper(session):
             MATCH (author:Author {ID: line.START_ID})
             WITH author, line
             MATCH (paper:Paper {ID: line.END_ID})
-            CREATE (author)-[:writes {corresponding_author:line.corresponding_author}]->(paper)"""
+            CREATE (author)-[w:writes]->(paper)
+            SET w.corresponding_author = toBoolean(line.corresponding_author)"""
     )
 
 def load_relation_paper_has_keyword(session):
@@ -107,7 +106,8 @@ def load_relation_paper_publishedin_journal(session):
             MATCH (paper:Paper {ID: line.START_ID})
             WITH paper, line
             MATCH (jour:Journal {ID: line.END_ID})
-            CREATE (paper) - [:published_in] -> (jour)"""
+            CREATE (paper) - [r:published_in] -> (jour)
+            SET r.volume = toInteger(line.volume), r.year = toInteger(line.year)"""
     )
 
 def load_relation_paper_cites_paper(session):
@@ -121,7 +121,7 @@ def load_relation_paper_cites_paper(session):
 
 def load_relation_author_reviews_paper(session):
     session.run(
-        """LOAD CSV WITH HEADERS FROM 'file:///author_reviews_papers.csv' AS line
+        """LOAD CSV WITH HEADERS FROM 'file:///author_review_papers.csv' AS line
             MATCH (author:Author {ID: line.START_ID})
             WITH author, line
             MATCH (paper:Paper {ID: line.END_ID})
