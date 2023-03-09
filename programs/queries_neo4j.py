@@ -35,7 +35,7 @@ def query_top3_cited_papers_conference(session):
     summary = result.consume()
     return records, summary
 
-# Query 2: Authors that have published in the same conference in at least 4 editions ------ returns no records as no editions data
+# Query 2: Authors that have published in the same conference in at least 4 editions
 def query_authors_published_same_conference_4editions(session):
     result = session.run(
         """MATCH (a:Author) - [:writes] -> (p:Paper) - [:presented_in] -> (c:Conference)
@@ -53,11 +53,24 @@ def query_authors_published_same_conference_4editions(session):
                    a2.email as author2_email
             LIMIT 5;"""
     )
+    
+    ### Alternative Solution
+    # result = session.run(
+    #     """
+    #     MATCH (a:Author) - [:writes] -> (p:Paper) - [:presented_in] -> (c:Conference)
+    #         WITH c.name as conferenceName, a, COUNT(DISTINCT c.edition) AS distinctEditions
+    #         WHERE distinctEditions >= 4
+    #         WITH conferenceName, a
+    #         RETURN conferenceName, COLLECT(a.name) as community
+    #         LIMIT 5;
+    #     """
+    # )
+    
     records = list(result)
     summary = result.consume()
     return records, summary
 
-# Query 3 Impact factor ----------- returns no records
+# Query 3 Impact factor
 # Impact factor = Citations(year1) / Publications(year1) + Publications(year2)
 def query_impact_factor(session):
     result = session.run(

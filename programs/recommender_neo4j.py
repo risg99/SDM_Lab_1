@@ -107,6 +107,25 @@ def query_top100_papers_pageRank(session):
             ORDER BY x
             LIMIT 5;"""
     )
+    
+    ### Alternative solution
+    # result = session.run(
+    #     """
+    #     MATCH (rc:ResearchCommunity {name:"Databases"}) <- [:belongs_to] - (k:Keyword) <- [:has*1..] - (cp:Paper) - [r1:published_in|presented_in] -> (x)
+    #         WHERE x:Journal OR x:Conference
+    #         WITH rc, cp, COUNT(DISTINCT cp) AS numberOfCommunityPapers
+    #         MATCH (p:Paper) - [r2:published_in|presented_in] -> (x)
+    #         WHERE x:Journal OR x:Conference
+    #         WITH rc, p, cp, x, numberOfCommunityPapers, COUNT(DISTINCT p) AS numberOfPapers
+    #         WHERE (toFloat(numberOfCommunityPapers) / (numberOfPapers)) >= 0.9
+    #         WITH rc, p
+    #         ORDER BY p.pagerank DESC
+    #         WITH rc, COLLECT(DISTINCT p) AS p
+    #         RETURN rc.name, p[0..100] AS top100Papers
+    #         LIMIT 5;
+    #     """
+    # )
+    
     records = list(result)
     summary = result.consume()
     return records, summary
@@ -123,10 +142,12 @@ def query_gurus_conferences(session):
             WHERE (toFloat(numberOfCommunityPapers) / (numberOfPapers)) >= 0.9
             WITH x, p
             ORDER BY p.pagerank DESC
-            WITH x, COLLECT(p) AS p
+            WITH x, COLLECT(DISTINCT p) AS p
             WITH labels(x)[0] AS confJour, x.name AS nameOfConfJour, p[0..100] AS top100Papers
-            UNWIND top100Papers AS topPapers
-            MATCH (a:Author) - [r3:writes] -> (p:topPapers)
+            UNWIND top100Papers as topPapers
+            WITH COLLECT(DISTINCT topPapers) as topPapersList
+            MATCH (a:Author) - [r3:writes] -> (p:Paper)
+            WHERE p IN topPapersList
             WITH a, COUNT(r3) AS numberOfWrittenPapers
             WHERE numberOfWrittenPapers >= 2
             RETURN a.name AS potentialReviewerName,
@@ -134,6 +155,34 @@ def query_gurus_conferences(session):
                 numberOfWrittenPapers AS guru
             LIMIT 5;"""
     )
+    
+    ### Alternative Solution
+    # result = session.run(
+    #     """
+    #     MATCH (rc:ResearchCommunity {name:"Databases"}) <- [:belongs_to] - (k:Keyword) <- [:has*1..] - (cp:Paper) - [r1:published_in|presented_in] -> (x)
+    #         WHERE x:Journal OR x:Conference
+    #         WITH rc, cp, COUNT(DISTINCT cp) AS numberOfCommunityPapers
+    #         MATCH (p:Paper) - [r2:published_in|presented_in] -> (x)
+    #         WHERE x:Journal OR x:Conference
+    #         WITH rc, p, cp, x, numberOfCommunityPapers, COUNT(DISTINCT p) AS numberOfPapers
+    #         WHERE (toFloat(numberOfCommunityPapers) / (numberOfPapers)) >= 0.9
+    #         WITH rc, p
+    #         ORDER BY p.pagerank DESC
+    #         WITH rc, COLLECT(DISTINCT p) AS p
+    #         WITH rc.name as communityName , p[0..100] AS top100Papers
+    #         UNWIND top100Papers as topPapers
+    #         WITH COLLECT(DISTINCT topPapers) as topPapersList
+    #         MATCH (a:Author) - [r3:writes] -> (p:Paper)
+    #         WHERE p IN topPapersList
+    #         WITH a, COUNT(r3) AS numberOfWrittenPapers
+    #         WHERE numberOfWrittenPapers >= 2
+    #         RETURN a.name AS potentialReviewerName,
+    #             a.email AS potentialReviewerEmail,
+    #             numberOfWrittenPapers AS guru
+    #         LIMIT 5;
+    #     """
+    # )
+    
     records = list(result)
     summary = result.consume()
     return records, summary
