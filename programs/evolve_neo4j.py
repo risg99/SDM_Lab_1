@@ -22,24 +22,26 @@ def load_node_institution_semantic(session):
 # as it's finally evolved into decision.
 def load_relation_author_reviews_paper(session):
     session.run(
-        """LOAD CSV WITH HEADERS FROM 'file:///author_review_papers.csv' AS line
-            MATCH (author:Author {ID: line.START_ID}) - [r:reviews] -> (paper:Paper {ID: line.END_ID})
-            SET r.comment = line.comment, r.acceptanceProbability = toFloat(line.acceptanceProbability);"""
+        """
+        LOAD CSV WITH HEADERS FROM 'file:///author_review_papers.csv' AS line
+            MATCH (author:Author {ID: toString(toInteger(line.START_ID))}) - [r:reviews] -> (paper:Paper {ID: line.END_ID})
+            SET r.comment = line.comment, r.acceptanceProbability = toFloat(line.acceptanceProbability);
+        """
     )
 
 # In this case, we are assuming each reviewer assigns a particular probability / score out of 10 (each)
 # It is accepted when the probability > 0.5 or score > 15
 def query_accept_paper_publication(session):
     session.run(
-        """MATCH (a:Author) - [r:reviews] -> (p:Paper)
-            WITH a, r, p.title AS paperTitle
-            CASE 
-                WHEN SUM(r.acceptanceProbability) > 0.5 
-                    THEN True
-                ELSE 
-                    False
-            END AS decision
-            SET r.decision = decision;"""
+        """
+        MATCH (a:Author) - [r:reviews] -> (p:Paper)
+        WITH a, r, p,
+        CASE
+            WHEN SUM(r.acceptanceProbability) > 0.5 
+            THEN True ELSE False 
+        END AS decision
+        SET r.decision = decision;
+        """
     )
 
 session = create_session()

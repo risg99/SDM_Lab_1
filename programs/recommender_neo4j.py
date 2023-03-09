@@ -174,7 +174,7 @@ def query_gurus_conferences(session):
     #         WITH COLLECT(DISTINCT topPapers) as topPapersList
     #         MATCH (a:Author) - [r3:writes] -> (p:Paper)
     #         WHERE p IN topPapersList
-    #         WITH a, COUNT(r3) AS numberOfWrittenPapers
+    #         WITH a, COUNT(DISTINCT r3) AS numberOfWrittenPapers
     #         WHERE numberOfWrittenPapers >= 2
     #         RETURN a.name AS potentialReviewerName,
     #             a.email AS potentialReviewerEmail,
