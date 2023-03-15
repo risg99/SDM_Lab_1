@@ -1,4 +1,5 @@
 from session_helper_neo4j import create_session, clean_session
+from drop_create_indexes_neo4j import drop_indexes, create_indexes
 
 def load_node_keyword_semantic(session):
     session.run(
@@ -131,6 +132,9 @@ def load_relation_author_reviews_paper(session):
 session = create_session()
 session = clean_session(session)
 
+print('Dropping the indexes created for the nodes and relations in the database...')
+session.execute_write(create_indexes)
+
 print('Creating and loading the nodes and relations into the database...')
 session.execute_write(load_node_keyword_semantic)
 session.execute_write(load_node_author_semantic)
@@ -146,5 +150,8 @@ session.execute_write(load_relation_paper_publishedin_journal)
 session.execute_write(load_relation_paper_cites_paper)
 session.execute_write(load_relation_author_reviews_paper)
 print('Creation and loading done for the database.')
+
+print('Creating the indexes for the nodes and relations in the database...')
+session.execute_write(create_indexes)
 
 session.close()
