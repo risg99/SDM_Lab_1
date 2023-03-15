@@ -7,8 +7,7 @@ def drop_indexes(session):
         DROP INDEX idx_journal IF EXISTS;
         DROP INDEX idx_conference IF EXISTS;
         DROP INDEX idx_proceeding IF EXISTS;
-        DROP INDEX idx_keyword IF EXISTS;
-        DROP INDEX idx_cites IF EXISTS;"""
+        DROP INDEX idx_keyword IF EXISTS;"""
     )
 
 def create_indexes(session):
@@ -46,12 +45,6 @@ def create_indexes(session):
     session.run("""CREATE INDEX idx_proceeding IF NOT EXISTS 
         FOR (p:Proceeding) 
         ON (p.ID);"""
-    )
-
-    print('Index for Cites')
-    session.run("""CREATE INDEX idx_cites IF NOT EXISTS
-        FOR () - [r:cites] - () 
-        ON (r.role);"""
     )
 
 session = create_session()
