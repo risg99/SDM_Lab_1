@@ -3,3 +3,5 @@
 !pip install json
 !pip install pandas
 !pip install pprintpp
+!pip install semanticscholar
+!pip install Faker
